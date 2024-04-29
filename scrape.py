@@ -1,19 +1,55 @@
+import os
 import re
 import requests
 import time
-from io import StringIO
 
 import numpy as np
-import pandas as pd
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 
-base_url = "https://www.basketball-reference.com/" 
+base_url = "https://www.basketball-reference.com/"
 img_path = "nbahalfcourt.png"
+
+teams_east = [
+    "BOS",
+    "NYK",
+    "MIL",
+    "CLE",
+    "ORL",
+    "IND",
+    "PHI",
+    "MIA",
+    "CHI",
+    "ATL",
+    "BRK",
+    "TOR",
+    "CHO",
+    "WAS",
+    "DET"
+]
+
+teams_west = [
+    "OKC",
+    "DEN",
+    "MIN",
+    "LAC",
+    "DAL",
+    "PHO",
+    "NOP",
+    "LAL",
+    "SAC",
+    "GSW",
+    "HOU",
+    "UTA",
+    "MEM",
+    "SAS",
+    "POR"
+]
 
 
 def process_response(response):
+
     html = response.text
     soup = BeautifulSoup(html, "html.parser")
 
@@ -23,10 +59,10 @@ def process_response(response):
     r = re.compile(r"^tooltip")
     points = shot_charts[0].find_all("div", {"class": r})
 
-    made_xs = []
-    made_ys = []
-    missed_xs = []
-    missed_ys = []
+    made_x = []
+    made_y = []
+    missed_x = []
+    missed_y = []
     for point in points:
         style = point["style"]
         x_px, y_px = style.split(";")[1], style.split(";")[0]
@@ -34,16 +70,25 @@ def process_response(response):
         y = y_px.split(":")[-1].strip("px")
 
         if "miss" in point["class"]:
-            missed_xs.append(int(x))
-            missed_ys.append(int(y))
+            missed_x.append(int(x))
+            missed_y.append(int(y))
         else:
-            made_xs.append(int(x))
-            made_ys.append(int(y))
+            made_x.append(int(x))
+            made_y.append(int(y))
 
-    return missed_xs, missed_ys, made_xs, made_ys
+    return (
+        np.array(missed_x),
+        np.array(missed_y),
+        np.array(made_x),
+        np.array(made_y)
+    )
 
 
-def parse_matches(response):
+def parse_matches(response, team):
+
+    newpath = f"data/{team}"
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
 
     html = response.text
     soup = BeautifulSoup(re.sub("<!--|-->", "", html), "html.parser")
@@ -68,13 +113,19 @@ def parse_matches(response):
 
             response = requests.get(url)
             if response.status_code == 200:
-                missed_xs, missed_ys, made_xs, made_ys = process_response(response)
-                np.savez(f"data/missed_{match_id}", np.array(missed_xs), np.array(missed_ys))
-                np.savez(f"data/made_{match_id}", np.array(made_xs), np.array(made_ys))
+                missed_x, missed_y, made_x, made_y = process_response(response)
+                np.savez(f"data/{team}/missed_{match_id}", missed_x, missed_y)
+                np.savez(f"data/{team}/made_{match_id}", made_x, made_y)
+
+
+def parse_teams(season):
+
+    for team in teams_east + teams_west:
+        url = f"{base_url}/teams/{team}/{season}_games.html"
+        response = requests.get(url)
+        if response.status_code == 200:
+            parse_matches(response, team)
 
 
 if __name__ == "__main__":
-    URL = "https://www.basketball-reference.com/teams/BOS/2024_games.html"
-    response = requests.get(URL)
-    if response.status_code == 200:
-        parse_matches(response)
+    parse_teams("2024")
