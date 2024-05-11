@@ -47,6 +47,31 @@ teams_west = [
     "POR"
 ]
 
+players = [
+    "curryst01",
+    "antetgi01",
+    "jamesle01",
+    "doncilu01",
+    "jokicni01",
+    "gilgesh01",
+    "embiijo01",
+    "duranke01",
+    "irvinky01",
+    "edwaran01",
+    "georgpa01",
+    "bookede01",
+    "willizi01",
+    "tatumja01",
+    "brunsja01",
+    "butleji01",
+    "goberru01",
+    "wembavi01",
+    "derozde01",
+    "youngtr01",
+    "hardeja01",
+    "thompkl01"
+]
+
 
 def process_response(response):
 
@@ -127,5 +152,15 @@ def parse_teams(season):
             parse_matches(response, team)
 
 
+def parse_players(season):
+
+    for player in players:
+        url = f"{base_url}/players/{player[0]}/{player}/shooting/{season}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            parse_matches(response, player)
+
+
 if __name__ == "__main__":
-    parse_teams("2024")
+    # parse_teams("2024")
+    parse_players("2024")
