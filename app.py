@@ -49,13 +49,27 @@ teams_west = [
     "POR"
 ]
 
+chart_types = ["points", "density"]
 
-def create_heatmap(team, type):
-    if type not in types:
+
+def plot_team_shot_chart(team, chart_type, shot_type):
+    if shot_type not in types:
         raise ValueError(
-            f"{type} is not a valid input. Possible choices: {types}"
+            f"{shot_type} is not a valid input. Possible choices: {types}"
         )
 
+    if chart_type.lower() == "density":
+        return create_heatmap(team, shot_type)
+    elif chart_type.lower() == "points":
+        return create_scatter(team, shot_type)
+    else:
+        raise ValueError(
+            f"{chart_type} is not a valid input. "
+            f"Possible choices: {chart_types}"
+        )
+
+
+def create_heatmap(team, shot_type):
     path = f"data/{team}"
 
     x = np.array([])
@@ -63,7 +77,7 @@ def create_heatmap(team, type):
     with os.scandir(path) as it:
         for entry in it:
             if entry.name.endswith(".npz") and entry.is_file():
-                if entry.name.startswith(type) or type == "all":
+                if entry.name.startswith(shot_type) or shot_type == "all":
                     data = np.load(f"{path}/{entry.name}")
                     x = np.append(x, data["arr_0"])
                     y = np.append(y, data["arr_1"])
@@ -119,6 +133,51 @@ def create_heatmap(team, type):
     return fig
 
 
+def create_scatter(team, shot_type):
+    path = f"data/{team}"
+
+    x = np.array([])
+    y = np.array([])
+    with os.scandir(path) as it:
+        for entry in it:
+            if entry.name.endswith(".npz") and entry.is_file():
+                if entry.name.startswith(shot_type) or shot_type == "all":
+                    data = np.load(f"{path}/{entry.name}")
+                    x = np.append(x, data["arr_0"])
+                    y = np.append(y, data["arr_1"])
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(x=x, y=y, mode="markers")
+    )
+
+    # fig.update_layout(xaxis_range=[0, 200])
+
+    fig.update_layout(
+        width=W,
+        height=H,
+        images=[
+            dict(
+                source=halfcourt,
+                xref="paper",
+                yref="paper",
+                x=0, y=1,
+                sizex=1, sizey=1,
+                xanchor="left", yanchor="top",
+                sizing="fill",
+                layer="below"
+            )
+        ]
+    )
+
+    fig['layout']['yaxis']['autorange'] = "reversed"
+
+    fig.update_xaxes(showgrid=False, zeroline=False, showticklabels=False)
+    fig.update_yaxes(showgrid=False, zeroline=False, showticklabels=False)
+
+    return fig
+
+
 app.layout = html.Div([
     html.H1(children='Title of Dash App', style={'textAlign': 'center'}),
     dcc.Dropdown(
@@ -126,16 +185,22 @@ app.layout = html.Div([
         options=teams_east + teams_west,
         value="BOS"
     ),
-    dcc.Graph(figure=go.Figure(), id='graph-content')
+    dcc.RadioItems(
+        ["Density", "Points"],
+        "Density",
+        id="shot-chart-type"
+    ),
+    dcc.Graph(figure=go.Figure(), id="shot-chart")
 ])
 
 
 @app.callback(
-    Output("graph-content", "figure"),
-    Input("team-dropdown", "value")
+    Output("shot-chart", "figure"),
+    Input("team-dropdown", "value"),
+    Input("shot-chart-type", "value")
 )
-def plot_heatmap(team):
-    return create_heatmap(team, "made")
+def plot_heatmap(team, chart_type):
+    return plot_team_shot_chart(team, chart_type=chart_type, shot_type="all")
 
 
 if __name__ == '__main__':
