@@ -191,6 +191,53 @@ def parse_players(season):
             np.savez(f"data/{player}/made", made_x, made_y)
 
 
+def process_response_dists(response):
+    html = response.text
+    soup = BeautifulSoup(re.sub("<!--|-->", "", html), "html.parser")
+
+    shot_chart = soup.find_all("div", {"class": "shot-area"})[0]
+
+    r = re.compile(r"^tooltip")
+    points = shot_chart.find_all("div", {"class": r})
+
+    dists = []
+    for point in points:
+        message = point["tip"].split("<br>")[2]
+        dist = int(message.split(" ")[-2])
+
+        if "make" in point["class"]:
+            dists.append(dist)
+
+    hist = np.histogram(dists, bins=[i for i in range(min(dists), max(dists))])
+
+    return hist
+
+
+def parse_player_shot_distances(season):
+
+    i = 0
+    for player in players:
+        newpath = f"data/{player}"
+        if not os.path.exists(newpath):
+            os.makedirs(newpath)
+
+        i += 1
+        if i % 30 == 0:
+            for _ in tqdm(range(0, 60), desc="Request cooldown (60s)"):
+                time.sleep(1)
+
+        url = f"{base_url}/players/{player[0]}/{player}/shooting/{season}"
+
+        print("Parsing", player)
+        response = requests.get(url)
+        if response.status_code == 200:
+            hist = process_response_dists(
+                response=response,
+            )
+            np.savez(f"data/{player}/dists", hist[0], hist[1])
+
+
 if __name__ == "__main__":
     # parse_teams("2024")
-    parse_players("2024")
+    # parse_players("2024")
+    parse_player_shot_distances("2024")
