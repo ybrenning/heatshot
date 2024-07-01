@@ -114,6 +114,39 @@ players_dict = {
     "thompkl01": "Klay Thompson"
 }
 
+teams_dict = {
+    "BOS": "Boston Celtics",
+    "NYK": "New York Knicks",
+    "MIL": "Milwaukee Bucks",
+    "CLE": "Cleveland Cavaliers",
+    "ORL": "Orlando Magic",
+    "IND": "Indiana Pacers",
+    "PHI": "Philadelphia 76ers",
+    "MIA": "Miami Heat",
+    "CHI": "Chicago Bulls",
+    "ATL": "Atlanta Hawks",
+    "BRK": "Brooklyn Nets",
+    "TOR": "Toronto Raptors",
+    "CHO": "Charlotte Hornets",
+    "WAS": "Washington Wizards",
+    "DET": "Detroit Pistons",
+    "OKC": "Oklahoma City Thunder",
+    "DEN": "Denver Nuggets",
+    "MIN": "Minnesota Timberwolves",
+    "LAC": "Los Angeles Clippers",
+    "DAL": "Dallas Mavericks",
+    "PHO": "Phoenix Suns",
+    "NOP": "New Orleans Pelicans",
+    "LAL": "Los Angeles Lakers",
+    "SAC": "Sacremento Kings",
+    "GSW": "Golden State Warriors",
+    "HOU": "Houston Rockets",
+    "UTA": "Utah Jazz",
+    "MEM": "Memphis Grizzlies",
+    "SAS": "San Antonio Spurs",
+    "POR": "Portland Trailblazers"
+}
+
 chart_types = ["points", "density"]
 
 
@@ -259,40 +292,16 @@ def create_scatter(team, shot_type):
 
 
 app.layout = html.Div([
-    html.H3(children='Title of Dash App', style={"margin-bottom": "10px"}),
+    html.H1(
+        children="Visualizing NBA shooting tendencies",
+        style={
+            "margin-bottom": "0px",
+            "margin-top": "20px",
+            "margin-left": "20px"
+        }
+    ),
+
     html.Div([
-
-        # html.Div([
-        #     html.H4("Category", style={"margin-bottom": "5px"}),
-        #     dcc.RadioItems(
-        #         ["Team", "Player"],
-        #         "Team",
-        #         id="category",
-        #     ),
-        # ], style={"margin-left": "75px", "margin-bottom": "20px", "margin-right": "50px"}),
-        #
-        # html.Div([
-        #     html.H4("Shot Type", style={"margin-bottom": "5px"}),
-        #     dcc.RadioItems(
-        #         ["Made", "Missed", "Attempted"],
-        #         "Attempted",
-        #         id="shot-type",
-        #     ),
-        # ], style={"margin-bottom": "20px", "margin-right": "50px"}),
-        #
-        # html.Div([
-        #     html.H4("Team/Player Selection", style={"margin-bottom": "5px"}),
-        #     dcc.Dropdown(
-        #         id="dropdown",
-        #         options=[
-        #             {"label": team, "value": team}
-        #             for team in teams_east + teams_west
-        #         ],
-        #         value="BOS",
-        #         style={"margin-left": "40px", "margin-left": "auto"}
-        #     ),
-        # ]),
-
         html.Div(
             [
                 html.Div(
@@ -337,14 +346,13 @@ app.layout = html.Div([
                     dcc.Dropdown(
                         id="dropdown",
                         options=[
-                            {"label": team, "value": team}
+                            {"label": teams_dict[team], "value": team}
                             for team in teams_east + teams_west
                         ],
                         value="BOS",
                     ),
                     style={
                         "margin-top": "0px",
-                        "margin-right": "50px",
                         "margin-bottom": "0px",
                         'padding': '10px',
                         "width": "75%"
@@ -365,19 +373,20 @@ app.layout = html.Div([
             style={
                 'display': 'flex',
                 'flexDirection': 'column',
-                "margin-right": "50px"
+                # "margin-right": "10px"
             },
         ),
-
 
         dcc.Graph(
             figure=go.Figure(),
             id="shot-chart",
-            style={"flex": "1", "margin-left": "20px"}
+            style={"flex": "1", "margin-left": "0px", "margin-right": "100px"}
         ),
 
     ],
              style={
+             "margin-top": "10px",
+             "margin-left": "75px",
              'display': 'flex',  # Use flex display
              'flexDirection': 'row',  # Align items in a row
              'justifyContent': 'space-around',  # Optional: space items evenly
@@ -423,7 +432,7 @@ def update_image(category, dropdown):
     if category == "Player":
         return f"assets/{dropdown}.jpg"
     else:
-        return ""
+        return f"assets/{dropdown}.png"
 
 
 @app.callback(
@@ -434,7 +443,7 @@ def update_image(category, dropdown):
 def update_dropdown(category):
     if category == "Team":
         options = [
-            {"label": team, "value": team}
+            {"label": teams_dict[team], "value": team}
             for team in teams_east + teams_west
         ]
         value = "BOS"
