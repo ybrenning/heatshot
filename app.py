@@ -257,33 +257,100 @@ def create_scatter(team, shot_type):
 
 
 app.layout = html.Div([
-    html.H1(children='Title of Dash App', style={'textAlign': 'center'}),
-    dcc.RadioItems(
-        ["Team", "Player"],
-        "Team",
-        id="category"
-    ),
+    html.H3(children='Title of Dash App', style={"margin-bottom": "10px"}),
+    html.Div([
 
-    dcc.RadioItems(
-        ["Made", "Missed", "Attempted"],
-        "Attempted",
-        id="shot-type"
-    ),
+        # html.Div([
+        #     html.H4("Category", style={"margin-bottom": "5px"}),
+        #     dcc.RadioItems(
+        #         ["Team", "Player"],
+        #         "Team",
+        #         id="category",
+        #     ),
+        # ], style={"margin-left": "75px", "margin-bottom": "20px", "margin-right": "50px"}),
+        #
+        # html.Div([
+        #     html.H4("Shot Type", style={"margin-bottom": "5px"}),
+        #     dcc.RadioItems(
+        #         ["Made", "Missed", "Attempted"],
+        #         "Attempted",
+        #         id="shot-type",
+        #     ),
+        # ], style={"margin-bottom": "20px", "margin-right": "50px"}),
+        #
+        # html.Div([
+        #     html.H4("Team/Player Selection", style={"margin-bottom": "5px"}),
+        #     dcc.Dropdown(
+        #         id="dropdown",
+        #         options=[
+        #             {"label": team, "value": team}
+        #             for team in teams_east + teams_west
+        #         ],
+        #         value="BOS",
+        #         style={"margin-left": "40px", "margin-left": "auto"}
+        #     ),
+        # ]),
 
-    dcc.Dropdown(
-        id="dropdown",
-        options=[
-            {"label": team, "value": team}
-            for team in teams_east + teams_west
+        html.Div(
+            dcc.RadioItems(
+                ["Team", "Player"],
+                "Team",
+                id="category",
+            ),
+            style={"margin-top": "75px", 'padding': '20px'}
+        ),
+        html.Div([
+                html.Div(
+                    dcc.RadioItems(
+                        ["Made", "Missed", "Attempted"],
+                        "Attempted",
+                        id="shot-type",
+                    ),
+                    style={"margin-top": "75px", 'padding': '20px'}
+                ),
+
+                html.Img(
+                    src="assets/willizi01.jpg"
+                )
         ],
-        value="BOS"
-    ),
+            style={
+                'display': 'flex',
+                'flexDirection': 'column'
+            },
+        ),
+
+        html.Div(
+            dcc.Dropdown(
+                id="dropdown",
+                options=[
+                    {"label": team, "value": team}
+                    for team in teams_east + teams_west
+                ],
+                value="BOS",
+            ),
+            style={"margin-top": "75px", 'padding': '20px', "width": "15%"}
+        ),
+
+        dcc.Graph(
+            figure=go.Figure(),
+            id="shot-chart",
+            style={"flex": "1"}
+        ),
+
+    ],
+             style={
+             'display': 'flex',  # Use flex display
+             'flexDirection': 'row',  # Align items in a row
+             'justifyContent': 'space-around',  # Optional: space items evenly
+             "height": "600px",
+             },
+             ),
+
     # dcc.RadioItems(
     #     ["Density", "Points"],
     #     "Density",
     #     id="shot-chart-type"
     # ),
-    dcc.Graph(figure=go.Figure(), id="shot-chart")
 ])
 
 
