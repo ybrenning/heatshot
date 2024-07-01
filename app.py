@@ -9,7 +9,18 @@ app = Dash(__name__)
 
 W = 500*1.2
 H = 472*1.2
-halfcourt = 'http://cdn.ssref.net/req/1/images/bbr/nbahalfcourt.png'
+# halfcourt = 'http://cdn.ssref.net/req/1/images/bbr/nbahalfcourt.png'
+halfcourt = 'nbahalfcourt.png'
+import plotly.io as pio
+from PIL import Image
+import base64
+from io import BytesIO
+
+# Load the image
+image = Image.open(halfcourt)
+buffered = BytesIO()
+image.save(buffered, format="PNG")
+img_str = base64.b64encode(buffered.getvalue()).decode()
 
 types = ["made", "missed", "all"]
 
@@ -113,7 +124,8 @@ def create_heatmap(team, shot_type):
         height=H,
         images=[
             dict(
-                source=halfcourt,
+                source='data:image/png;base64,{}'.format(img_str),
+                # source=halfcourt,
                 xref="paper",
                 yref="paper",
                 x=0, y=1,
@@ -158,7 +170,8 @@ def create_scatter(team, shot_type):
         height=H,
         images=[
             dict(
-                source=halfcourt,
+                # source=halfcourt,
+                source='data:image/png;base64,{}'.format(img_str),
                 xref="paper",
                 yref="paper",
                 x=0, y=1,
@@ -182,7 +195,7 @@ app.layout = html.Div([
     html.H1(children='Title of Dash App', style={'textAlign': 'center'}),
     dcc.Dropdown(
         id="team-dropdown",
-        options=teams_east + teams_west,
+        options=teams_east + teams_west + ["curryst01"],
         value="BOS"
     ),
     dcc.RadioItems(
@@ -200,6 +213,7 @@ app.layout = html.Div([
     Input("shot-chart-type", "value")
 )
 def plot_heatmap(team, chart_type):
+    # TODO: Make shot_type part of the inputs
     return plot_team_shot_chart(team, chart_type=chart_type, shot_type="all")
 
 
