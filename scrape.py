@@ -180,6 +180,7 @@ def parse_players(season):
 
         url = f"{base_url}/players/{player[0]}/{player}/shooting/{season}"
 
+        print("Parsing", player)
         response = requests.get(url)
         if response.status_code == 200:
             missed_x, missed_y, made_x, made_y = process_response(
@@ -188,9 +189,6 @@ def parse_players(season):
             )
             np.savez(f"data/{player}/missed", missed_x, missed_y)
             np.savez(f"data/{player}/made", made_x, made_y)
-
-            assert False
-        print(url)
 
 
 if __name__ == "__main__":
