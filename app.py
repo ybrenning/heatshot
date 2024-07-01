@@ -368,7 +368,17 @@ app.layout = html.Div([
                         "margin-left": "10px",
                         "width": "400px"
                     }
-                )
+                ),
+
+                dcc.Graph(
+                    figure=go.Figure(),
+                    id="shot-dists",
+                    style={
+                        "flex-grow": "1",
+                        "max-height": "250px",
+                        "min-width": "400px"
+                    }
+                ),
 
             ],
 
@@ -395,9 +405,6 @@ app.layout = html.Div([
              },
     ),
 
-    dcc.Graph(
-        id="shot-dists",
-    ),
 
 ], style={"font-family": "Verdana"})
 
@@ -477,16 +484,29 @@ def plot_dists(dropdown):
     data = np.load(f"data/{dropdown}/dists.npz")
     x, y = data["arr_1"], data["arr_0"]
 
-    print(x, y)
-    fig = go.Figure()
+    layout = go.Layout(
+        margin=dict(t=20),  # Adjust top margin (in pixels)
+        autosize=True
+    )
+
+    fig = go.Figure(layout=layout)
 
     fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name='Line Chart'))
 
-    fig.update_layout(title='Line Chart Example',
-                      xaxis_title='X Axis Title',
-                      yaxis_title='Y Axis Title')
+    fig.update_layout(
+        # title='Line Chart Example',
+        xaxis_title="Shot distance (ft)",
+        yaxis_title="No. of made shots"
+    )
 
     fig.add_vline(x=22, line_width=3, line_dash="dash", line_color="green")
+    fig.add_annotation(
+        x=22,
+        y=40,
+        text="3PT Line",
+        showarrow=False,
+        yshift=10,
+    )
 
     return fig
 
