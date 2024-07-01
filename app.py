@@ -121,7 +121,8 @@ def create_heatmap(team, shot_type):
 
     fig.update_layout(
         width=W,
-        height=H,
+        # For some reason it gets cut off
+        height=H+10,
         images=[
             dict(
                 source='data:image/png;base64,{}'.format(img_str),
@@ -158,16 +159,28 @@ def create_scatter(team, shot_type):
                     x = np.append(x, data["arr_0"])
                     y = np.append(y, data["arr_1"])
 
+    def normalize(value, min_value, max_value, new_min, new_max):
+        return ((value - min_value) / (max_value - min_value)) * (new_max - new_min) + new_min
+
+    xs = x
+    ys = y
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+
+    normalized_x = [normalize(x, x_min, x_max, 0, W) for x in xs]
+    normalized_y = [normalize(y, y_min, y_max, 0, H) for y in ys]
+
     fig = go.Figure()
     fig.add_trace(
-        go.Scatter(x=x, y=y, mode="markers")
+        go.Scatter(x=normalized_x, y=normalized_y, mode="markers")
     )
 
-    # fig.update_layout(xaxis_range=[0, 200])
+    fig.update_layout(xaxis_range=[0, W+10])
+    fig.update_layout(yaxis_range=[0, H])
 
     fig.update_layout(
-        width=W,
-        height=H,
+        width=W-10,
+        height=H+20,
         images=[
             dict(
                 # source=halfcourt,
@@ -186,7 +199,7 @@ def create_scatter(team, shot_type):
     fig['layout']['yaxis']['autorange'] = "reversed"
 
     fig.update_xaxes(showgrid=False, zeroline=False, showticklabels=False)
-    fig.update_yaxes(showgrid=False, zeroline=False, showticklabels=False)
+    fig.update_yaxes(range=[0, H+100], showgrid=False, zeroline=False, showticklabels=False)
 
     return fig
 
@@ -198,11 +211,11 @@ app.layout = html.Div([
         options=teams_east + teams_west + ["curryst01"],
         value="BOS"
     ),
-    dcc.RadioItems(
-        ["Density", "Points"],
-        "Density",
-        id="shot-chart-type"
-    ),
+    # dcc.RadioItems(
+    #     ["Density", "Points"],
+    #     "Density",
+    #     id="shot-chart-type"
+    # ),
     dcc.Graph(figure=go.Figure(), id="shot-chart")
 ])
 
@@ -210,9 +223,9 @@ app.layout = html.Div([
 @app.callback(
     Output("shot-chart", "figure"),
     Input("team-dropdown", "value"),
-    Input("shot-chart-type", "value")
+    # Input("shot-chart-type", "value")
 )
-def plot_heatmap(team, chart_type):
+def plot_heatmap(team, chart_type="density"):
     # TODO: Make shot_type part of the inputs
     return plot_team_shot_chart(team, chart_type=chart_type, shot_type="all")
 
