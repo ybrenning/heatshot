@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import plotly.graph_objects as go
+import plotly.express as px
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from sklearn.neighbors import KernelDensity
@@ -175,10 +176,11 @@ def create_heatmap(team, shot_type):
     with os.scandir(path) as it:
         for entry in it:
             if entry.name.endswith(".npz") and entry.is_file():
-                if entry.name.startswith(shot_type) or shot_type == "all":
-                    data = np.load(f"{path}/{entry.name}")
-                    x = np.append(x, data["arr_0"])
-                    y = np.append(y, data["arr_1"])
+                if not entry.name.startswith("dists"):
+                    if entry.name.startswith(shot_type) or shot_type == "all":
+                        data = np.load(f"{path}/{entry.name}")
+                        x = np.append(x, data["arr_0"])
+                        y = np.append(y, data["arr_1"])
 
     data = np.vstack([x, y]).T
 
@@ -373,7 +375,6 @@ app.layout = html.Div([
             style={
                 'display': 'flex',
                 'flexDirection': 'column',
-                # "margin-right": "10px"
             },
         ),
 
@@ -387,19 +388,18 @@ app.layout = html.Div([
              style={
              "margin-top": "10px",
              "margin-left": "75px",
-             'display': 'flex',  # Use flex display
-             'flexDirection': 'row',  # Align items in a row
-             'justifyContent': 'space-around',  # Optional: space items evenly
+             'display': 'flex',
+             'flexDirection': 'row',
+             'justifyContent': 'space-around',
              "height": "600px",
              },
-             ),
+    ),
 
-    # dcc.RadioItems(
-    #     ["Density", "Points"],
-    #     "Density",
-    #     id="shot-chart-type"
-    # ),
-])
+    dcc.Graph(
+        id="shot-dists",
+    ),
+
+], style={"font-family": "Verdana"})
 
 
 @app.callback(
@@ -417,7 +417,6 @@ def update_player_desc(category, dropdown):
             description.append(attribute + ": " + player_data[dropdown][attribute])
             description.append(html.Br())
 
-        print(description)
         return description
     else:
         return ""
@@ -464,12 +463,44 @@ def update_dropdown(category):
     # Input("shot-chart-type", "value")
 )
 def plot_heatmap(team, shot_type, chart_type="density"):
+
     shot_type = shot_type_dict[shot_type]
     return plot_team_shot_chart(
         team,
         chart_type=chart_type,
         shot_type=shot_type
     )
+
+
+def plot_dists(dropdown):
+
+    data = np.load(f"data/{dropdown}/dists.npz")
+    x, y = data["arr_1"], data["arr_0"]
+
+    print(x, y)
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name='Line Chart'))
+
+    fig.update_layout(title='Line Chart Example',
+                      xaxis_title='X Axis Title',
+                      yaxis_title='Y Axis Title')
+
+    fig.add_vline(x=22, line_width=3, line_dash="dash", line_color="green")
+
+    return fig
+
+
+@app.callback(
+    Output("shot-dists", "figure"),
+    Output("shot-dists", "style"),
+    Input("category", "value"),
+    Input("dropdown", "value"),
+)
+def create_dist_graph(category, dropdown):
+    if category == "Player":
+        return plot_dists(dropdown), {"display": "block"}
+    return go.Figure(), {"display": "none"}
 
 
 if __name__ == '__main__':
