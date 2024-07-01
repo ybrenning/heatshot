@@ -5,6 +5,8 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from sklearn.neighbors import KernelDensity
 
+from player_data import player_data
+
 app = Dash(__name__)
 
 W = 500*1.2
@@ -292,14 +294,36 @@ app.layout = html.Div([
         # ]),
 
         html.Div(
-            dcc.RadioItems(
-                ["Team", "Player"],
-                "Team",
-                id="category",
-            ),
-            style={"margin-top": "75px", 'padding': '20px'}
+            [
+                html.Div(
+                    dcc.RadioItems(
+                        ["Team", "Player"],
+                        "Team",
+                        id="category",
+                    ),
+                    style={"margin-top": "75px", 'padding': '20px'}
+                ),
+
+                html.Img(
+                    id="img",
+                    src="",
+                    style={
+                        'width': '100px',
+                        'height': 'auto',
+                        'alignSelf': 'flex-start',
+                        'margin': '20px'
+                    }
+                ),
+            ],
+
+            style={
+                'display': 'flex',
+                'flexDirection': 'column'
+            },
         ),
-        html.Div([
+
+        html.Div(
+            [
                 html.Div(
                     dcc.RadioItems(
                         ["Made", "Missed", "Attempted"],
@@ -309,32 +333,47 @@ app.layout = html.Div([
                     style={"margin-top": "75px", 'padding': '20px'}
                 ),
 
-                html.Img(
-                    src="assets/willizi01.jpg"
+                html.Div(
+                    dcc.Dropdown(
+                        id="dropdown",
+                        options=[
+                            {"label": team, "value": team}
+                            for team in teams_east + teams_west
+                        ],
+                        value="BOS",
+                    ),
+                    style={
+                        "margin-top": "0px",
+                        "margin-right": "50px",
+                        "margin-bottom": "0px",
+                        'padding': '10px',
+                        "width": "75%"
+                    }
+                ),
+
+                html.P(
+                    id="player-desc",
+                    style={
+                        "margin-top": "0px",
+                        "margin-left": "10px",
+                        "width": "400px"
+                    }
                 )
-        ],
+
+            ],
+
             style={
                 'display': 'flex',
-                'flexDirection': 'column'
+                'flexDirection': 'column',
+                "margin-right": "50px"
             },
         ),
 
-        html.Div(
-            dcc.Dropdown(
-                id="dropdown",
-                options=[
-                    {"label": team, "value": team}
-                    for team in teams_east + teams_west
-                ],
-                value="BOS",
-            ),
-            style={"margin-top": "75px", 'padding': '20px', "width": "15%"}
-        ),
 
         dcc.Graph(
             figure=go.Figure(),
             id="shot-chart",
-            style={"flex": "1"}
+            style={"flex": "1", "margin-left": "20px"}
         ),
 
     ],
@@ -352,6 +391,39 @@ app.layout = html.Div([
     #     id="shot-chart-type"
     # ),
 ])
+
+
+@app.callback(
+    Output("player-desc", "children"),
+    Input("category", "value"),
+    Input("dropdown", "value")
+)
+def update_player_desc(category, dropdown):
+    if category == "Player":
+        # TODO: Make this dynamic
+        attributes = ["Position", "Shoots", "Height", "Weight"]
+        description = []
+
+        for attribute in attributes:
+            description.append(attribute + ": " + player_data[dropdown][attribute])
+            description.append(html.Br())
+
+        print(description)
+        return description
+    else:
+        return ""
+
+
+@app.callback(
+    Output("img", "src"),
+    Input("category", "value"),
+    Input("dropdown", "value")
+)
+def update_image(category, dropdown):
+    if category == "Player":
+        return f"assets/{dropdown}.jpg"
+    else:
+        return ""
 
 
 @app.callback(
