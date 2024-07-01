@@ -23,6 +23,7 @@ image.save(buffered, format="PNG")
 img_str = base64.b64encode(buffered.getvalue()).decode()
 
 types = ["made", "missed", "all"]
+shot_type_dict = {"Made": "made", "Missed": "missed", "Attempted": "all"}
 
 teams_east = [
     "BOS",
@@ -59,6 +60,57 @@ teams_west = [
     "SAS",
     "POR"
 ]
+
+players = [
+    "curryst01",
+    "antetgi01",
+    "jamesle01",
+    "doncilu01",
+    "jokicni01",
+    "gilgesh01",
+    "embiijo01",
+    "duranke01",
+    "irvinky01",
+    "edwaran01",
+    "georgpa01",
+    "bookede01",
+    "willizi01",
+    "tatumja01",
+    "brunsja01",
+    "butleji01",
+    "goberru01",
+    "wembavi01",
+    "derozde01",
+    "youngtr01",
+    "hardeja01",
+    "thompkl01"
+]
+
+
+players_dict = {
+    "curryst01": "Stephen Curry",
+    "antetgi01": "Giannis Antetokounmpo",
+    "jamesle01": "LeBron James",
+    "doncilu01": "Luka Doncic",
+    "jokicni01": "Nikola Jokic",
+    "gilgesh01": "Shai Gilgeous-Alexander",
+    "embiijo01": "Joel Embiid",
+    "duranke01": "Kevin Durant",
+    "irvinky01": "Kyrie Irving",
+    "edwaran01": "Anthony Edwards",
+    "georgpa01": "Paul George",
+    "bookede01": "Devin Booker",
+    "willizi01": "Zion Williamson",
+    "tatumja01": "Jayson Tatum",
+    "brunsja01": "Jalen Brunson",
+    "butleji01": "Jimmy Butler",
+    "goberru01": "Rudy Gobert",
+    "wembavi01": "Victor Wembanyama",
+    "derozde01": "DeMar DeRozan",
+    "youngtr01": "Trae Young",
+    "hardeja01": "James Harden",
+    "thompkl01": "Klay Thompson"
+}
 
 chart_types = ["points", "density"]
 
@@ -206,9 +258,24 @@ def create_scatter(team, shot_type):
 
 app.layout = html.Div([
     html.H1(children='Title of Dash App', style={'textAlign': 'center'}),
+    dcc.RadioItems(
+        ["Team", "Player"],
+        "Team",
+        id="category"
+    ),
+
+    dcc.RadioItems(
+        ["Made", "Missed", "Attempted"],
+        "Attempted",
+        id="shot-type"
+    ),
+
     dcc.Dropdown(
-        id="team-dropdown",
-        options=teams_east + teams_west + ["curryst01"],
+        id="dropdown",
+        options=[
+            {"label": team, "value": team}
+            for team in teams_east + teams_west
+        ],
         value="BOS"
     ),
     # dcc.RadioItems(
@@ -221,13 +288,40 @@ app.layout = html.Div([
 
 
 @app.callback(
+    Output("dropdown", "options"),
+    Output("dropdown", "value"),
+    Input("category", "value")
+)
+def update_dropdown(category):
+    if category == "Team":
+        options = [
+            {"label": team, "value": team}
+            for team in teams_east + teams_west
+        ]
+        value = "BOS"
+    elif category == "Player":
+        options = [
+            {"label": players_dict[player], "value": player}
+            for player in players_dict
+        ]
+        value = "curryst01"
+
+    return options, value
+
+
+@app.callback(
     Output("shot-chart", "figure"),
-    Input("team-dropdown", "value"),
+    Input("dropdown", "value"),
+    Input("shot-type", "value"),
     # Input("shot-chart-type", "value")
 )
-def plot_heatmap(team, chart_type="density"):
-    # TODO: Make shot_type part of the inputs
-    return plot_team_shot_chart(team, chart_type=chart_type, shot_type="all")
+def plot_heatmap(team, shot_type, chart_type="density"):
+    shot_type = shot_type_dict[shot_type]
+    return plot_team_shot_chart(
+        team,
+        chart_type=chart_type,
+        shot_type=shot_type
+    )
 
 
 if __name__ == '__main__':
