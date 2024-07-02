@@ -119,7 +119,8 @@ def process_response(response, category):
     )
 
 
-def parse_matches(response, team):
+def parse_matches(response, team, option):
+    print("Parsing matches for", team)
 
     newpath = f"data/{team}"
     if not os.path.exists(newpath):
@@ -144,25 +145,53 @@ def parse_matches(response, team):
                 for _ in tqdm(range(0, 60), desc="Request cooldown (60s)"):
                     time.sleep(1)
 
-            url = f"{base_url}/boxscores/shot-chart/{match_id}.html"
+            if option == "points":
+                url = f"{base_url}/boxscores/shot-chart/{match_id}.html"
 
-            response = requests.get(url)
-            if response.status_code == 200:
-                missed_x, missed_y, made_x, made_y = process_response(
-                    response=response,
-                    category="match"
-                )
-                np.savez(f"data/{team}/missed_{match_id}", missed_x, missed_y)
-                np.savez(f"data/{team}/made_{match_id}", made_x, made_y)
+                response = requests.get(url)
+                if response.status_code == 200:
+                    missed_x, missed_y, made_x, made_y = process_response(
+                        response=response,
+                        category="match"
+                    )
+                    np.savez(f"data/{team}/missed_{match_id}", missed_x, missed_y)
+                    np.savez(f"data/{team}/made_{match_id}", made_x, made_y)
+            elif option == "dists":
+                dists_made = []
+                dists_missed = []
+                url = f"{base_url}/boxscores/shot-chart/{match_id}.html"
+
+                response = requests.get(url)
+                if response.status_code == 200:
+                    current_dists_made, current_dists_missed = process_response_dists(
+                        response=response,
+                        category="team"
+                    )
+
+                    dists_made.extend(current_dists_made)
+                    dists_missed.extend(current_dists_missed)
+
+        if option == "dists":
+            hist_made = np.histogram(
+                dists_made,
+                bins=[i for i in range(min(dists_made), max(dists_made))]
+            )
+            hist_missed = np.histogram(
+                dists_missed,
+                bins=[i for i in range(min(dists_missed), max(dists_missed))]
+            )
+
+            np.savez(f"data/{team}/dists", hist_made[0], hist_made[1])
+            np.savez(f"data/{team}/dists_missed", hist_missed[0], hist_missed[1])
 
 
-def parse_teams(season):
+def parse_team_shot_points(season):
 
     for team in teams_east + teams_west:
         url = f"{base_url}/teams/{team}/{season}_games.html"
         response = requests.get(url)
         if response.status_code == 200:
-            parse_matches(response, team)
+            parse_matches(response, team, option="points")
 
 
 def parse_players(season):
@@ -191,7 +220,7 @@ def parse_players(season):
             np.savez(f"data/{player}/made", made_x, made_y)
 
 
-def process_response_dists(response):
+def process_response_dists(response, category):
     html = response.text
     soup = BeautifulSoup(re.sub("<!--|-->", "", html), "html.parser")
 
@@ -200,17 +229,30 @@ def process_response_dists(response):
     r = re.compile(r"^tooltip")
     points = shot_chart.find_all("div", {"class": r})
 
-    dists = []
+    dists_made = []
+    dists_missed = []
     for point in points:
-        message = point["tip"].split("<br>")[2]
+        if category == "player":
+            message = point["tip"].split("<br>")[2]
+        elif category == "team":
+            message = point["tip"].split("<br>")[1]
+        else:
+            raise ValueError(f"{category} is not a valid category.")
+
         dist = int(message.split(" ")[-2])
 
         if "make" in point["class"]:
-            dists.append(dist)
+            dists_made.append(dist)
+        else:
+            dists_missed.append(dist)
 
-    hist = np.histogram(dists, bins=[i for i in range(min(dists), max(dists))])
+    if category == "team":
+        return dists_made, dists_missed
+    else:
+        hist_made = np.histogram(dists_made, bins=[i for i in range(min(dists_made), max(dists_made))])
+        hist_missed = np.histogram(dists_missed, bins=[i for i in range(min(dists_missed), max(dists_missed))])
 
-    return hist
+        return hist_made, hist_missed
 
 
 def parse_player_shot_distances(season):
@@ -231,13 +273,30 @@ def parse_player_shot_distances(season):
         print("Parsing", player)
         response = requests.get(url)
         if response.status_code == 200:
-            hist = process_response_dists(
+            hist_made, hist_missed = process_response_dists(
                 response=response,
+                category="player"
             )
-            np.savez(f"data/{player}/dists", hist[0], hist[1])
+            np.savez(f"data/{player}/dists", hist_made[0], hist_made[1])
+            np.savez(f"data/{player}/dists_missed", hist_missed[0], hist_missed[1])
+
+
+def parse_team_shot_distances(season):
+
+    for team in teams_east + teams_west:
+        url = f"{base_url}/teams/{team}/{season}_games.html"
+        response = requests.get(url)
+        print(response)
+        if response.status_code == 200:
+            print("Success")
+            parse_matches(response, team, option="dists")
+        assert False
+
+        for _ in tqdm(range(0, 60), desc="Request cooldown (60s)"):
+            time.sleep(1)
+    print("Done!")
 
 
 if __name__ == "__main__":
-    # parse_teams("2024")
-    # parse_players("2024")
-    parse_player_shot_distances("2024")
+    # parse_player_shot_distances("2024")
+    parse_team_shot_distances("2024")
