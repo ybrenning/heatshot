@@ -341,7 +341,11 @@ app.layout = html.Div([
                         "Attempted",
                         id="shot-type",
                     ),
-                    style={"margin-top": "75px", 'padding': '20px'}
+                    style={
+                        "margin-top": "75px",
+                        "margin-left": "40px",
+                        'padding': '20px'
+                    }
                 ),
 
                 html.Div(
@@ -354,6 +358,7 @@ app.layout = html.Div([
                         value="BOS",
                     ),
                     style={
+                        "margin-left": "60px",
                         "margin-top": "0px",
                         "margin-bottom": "0px",
                         'padding': '10px',
@@ -365,8 +370,9 @@ app.layout = html.Div([
                     id="player-desc",
                     style={
                         "margin-top": "0px",
-                        "margin-left": "10px",
-                        "width": "400px"
+                        "margin-left": "75px",
+                        "width": "400px",
+                        "font-size": "small",
                     }
                 ),
 
@@ -482,7 +488,7 @@ def plot_heatmap(team, shot_type, chart_type="density"):
 def plot_dists(dropdown):
 
     data = np.load(f"data/{dropdown}/dists.npz")
-    x, y = data["arr_1"], data["arr_0"]
+    xs, ys = data["arr_1"], data["arr_0"]
 
     layout = go.Layout(
         margin=dict(t=20),  # Adjust top margin (in pixels)
@@ -491,7 +497,17 @@ def plot_dists(dropdown):
 
     fig = go.Figure(layout=layout)
 
-    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name='Line Chart'))
+    hover_text = [f"{y} shots made from {x} ft" for (x, y) in zip(xs, ys)]
+    fig.add_trace(
+        go.Scatter(
+            x=xs,
+            y=ys,
+            mode='lines',
+            name='Line Chart',
+            text=hover_text,
+            hovertemplate="%{text}<extra></extra>"
+        )
+    )
 
     fig.update_layout(
         # title='Line Chart Example',
@@ -507,6 +523,9 @@ def plot_dists(dropdown):
         showarrow=False,
         yshift=10,
     )
+
+    fig.update_layout(hovermode="x")
+    fig.update_layout(xaxis_range=[0, 47])
 
     return fig
 
