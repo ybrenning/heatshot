@@ -486,7 +486,7 @@ def plot_heatmap(team, shot_type, chart_type="density"):
     )
 
 
-def plot_dists(dropdown):
+def plot_dists(dropdown, stat="made"):
 
     data_made = np.load(f"data/{dropdown}/dists.npz")
     data_missed = np.load(f"data/{dropdown}/dists_missed.npz")
@@ -494,28 +494,37 @@ def plot_dists(dropdown):
     xs_made, ys_made = data_made["arr_1"], data_made["arr_0"]
     xs_missed, ys_missed = data_missed["arr_1"], data_missed["arr_0"]
 
-    made_shape = xs_made.shape[0]
-    missed_shape = xs_missed.shape[0]
+    if stat == "fgp":
+        made_shape = xs_made.shape[0]
+        missed_shape = xs_missed.shape[0]
 
-    pad_made_len = HALFCOURT_LEN - made_shape
-    pad_missed_len = HALFCOURT_LEN - missed_shape
+        pad_made_len = HALFCOURT_LEN - made_shape
+        pad_missed_len = HALFCOURT_LEN - missed_shape
 
-    for i in range(0, pad_made_len):
-        xs_made = np.append(xs_made, max(xs_made)+i)
-        ys_made = np.append(ys_made, 0)
-    for i in range(0, pad_missed_len):
-        xs_missed = np.append(xs_missed, max(xs_made)+i)
-        ys_missed = np.append(ys_missed, 0)
+        for i in range(0, pad_made_len):
+            xs_made = np.append(xs_made, max(xs_made)+i)
+            ys_made = np.append(ys_made, 0)
+        for i in range(0, pad_missed_len):
+            xs_missed = np.append(xs_missed, max(xs_made)+i)
+            ys_missed = np.append(ys_missed, 0)
 
-    print(xs_made, ys_made)
-    print(xs_missed, ys_missed)
+        zero_mask = (ys_made == 0) & (ys_missed == 0)
+        ys_pct = np.divide(
+            ys_made, ys_missed + ys_made,
+            out=np.zeros_like(ys_made, dtype=float),
+            where=(ys_missed + ys_made) != 0
+        )
 
-    zero_mask = (ys_made == 0) & (ys_missed == 0)
+        ys_pct[zero_mask] = 0
+        ys = ys_pct
+    elif stat == "made":
+        ys = ys_made
+    elif stat == "miss":
+        ys = ys_missed
+    elif stat == "all":
+        ys = np.append(ys_made, ys_missed)
 
-    ys_pct = np.divide(ys_made, ys_missed + ys_made, out=np.zeros_like(ys_made, dtype=float), where=(ys_missed + ys_made) != 0)
-
-    ys_pct[zero_mask] = 0
-
+    print(ys)
     layout = go.Layout(
         margin=dict(t=20),
         autosize=True
@@ -527,7 +536,7 @@ def plot_dists(dropdown):
     fig.add_trace(
         go.Scatter(
             x=xs_made,
-            y=ys_pct,
+            y=ys,
             mode='lines',
             name='Line Chart',
             # text=hover_text,
@@ -551,7 +560,7 @@ def plot_dists(dropdown):
     )
 
     fig.update_layout(hovermode="x")
-    fig.update_layout(xaxis_range=[0, 47])
+    fig.update_layout(xaxis_range=[0, HALFCOURT_LEN])
 
     return fig
 
