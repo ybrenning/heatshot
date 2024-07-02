@@ -12,7 +12,8 @@ app = Dash(__name__)
 
 W = 500*1.2
 H = 472*1.2
-# halfcourt = 'http://cdn.ssref.net/req/1/images/bbr/nbahalfcourt.png'
+HALFCOURT_LEN = 47
+
 halfcourt = 'nbahalfcourt.png'
 import plotly.io as pio
 from PIL import Image
@@ -487,25 +488,50 @@ def plot_heatmap(team, shot_type, chart_type="density"):
 
 def plot_dists(dropdown):
 
-    data = np.load(f"data/{dropdown}/dists.npz")
-    xs, ys = data["arr_1"], data["arr_0"]
+    data_made = np.load(f"data/{dropdown}/dists.npz")
+    data_missed = np.load(f"data/{dropdown}/dists_missed.npz")
+
+    xs_made, ys_made = data_made["arr_1"], data_made["arr_0"]
+    xs_missed, ys_missed = data_missed["arr_1"], data_missed["arr_0"]
+
+    made_shape = xs_made.shape[0]
+    missed_shape = xs_missed.shape[0]
+
+    pad_made_len = HALFCOURT_LEN - made_shape
+    pad_missed_len = HALFCOURT_LEN - missed_shape
+
+    for i in range(0, pad_made_len):
+        xs_made = np.append(xs_made, max(xs_made)+i)
+        ys_made = np.append(ys_made, 0)
+    for i in range(0, pad_missed_len):
+        xs_missed = np.append(xs_missed, max(xs_made)+i)
+        ys_missed = np.append(ys_missed, 0)
+
+    print(xs_made, ys_made)
+    print(xs_missed, ys_missed)
+
+    zero_mask = (ys_made == 0) & (ys_missed == 0)
+
+    ys_pct = np.divide(ys_made, ys_missed + ys_made, out=np.zeros_like(ys_made, dtype=float), where=(ys_missed + ys_made) != 0)
+
+    ys_pct[zero_mask] = 0
 
     layout = go.Layout(
-        margin=dict(t=20),  # Adjust top margin (in pixels)
+        margin=dict(t=20),
         autosize=True
     )
 
     fig = go.Figure(layout=layout)
 
-    hover_text = [f"{y} shots made from {x} ft" for (x, y) in zip(xs, ys)]
+    # hover_text_made = [f"{y} shots made from {x} ft" for (x, y) in zip(xs, ys)]
     fig.add_trace(
         go.Scatter(
-            x=xs,
-            y=ys,
+            x=xs_made,
+            y=ys_pct,
             mode='lines',
             name='Line Chart',
-            text=hover_text,
-            hovertemplate="%{text}<extra></extra>"
+            # text=hover_text,
+            # hovertemplate="%{text}<extra></extra>"
         )
     )
 
@@ -518,7 +544,7 @@ def plot_dists(dropdown):
     fig.add_vline(x=22, line_width=3, line_dash="dash", line_color="green")
     fig.add_annotation(
         x=22,
-        y=40,
+        y=0.5,
         text="3PT Line",
         showarrow=False,
         yshift=10,
@@ -537,9 +563,9 @@ def plot_dists(dropdown):
     Input("dropdown", "value"),
 )
 def create_dist_graph(category, dropdown):
-    if category == "Player":
-        return plot_dists(dropdown), {"display": "block"}
-    return go.Figure(), {"display": "none"}
+    # if category == "Player":
+    return plot_dists(dropdown), {"display": "block"}
+    # return go.Figure(), {"display": "none"}
 
 
 if __name__ == '__main__':
