@@ -133,6 +133,8 @@ def parse_matches(response, team, option):
     rows = table.find_all("tr")
     i = 0
 
+    dists_made = []
+    dists_missed = []
     for row in rows:
         is_row = bool(row.find_all("th", {"scope": "row"}))
         if is_row:
@@ -157,8 +159,6 @@ def parse_matches(response, team, option):
                     np.savez(f"data/{team}/missed_{match_id}", missed_x, missed_y)
                     np.savez(f"data/{team}/made_{match_id}", made_x, made_y)
             elif option == "dists":
-                dists_made = []
-                dists_missed = []
                 url = f"{base_url}/boxscores/shot-chart/{match_id}.html"
 
                 response = requests.get(url)
@@ -171,18 +171,18 @@ def parse_matches(response, team, option):
                     dists_made.extend(current_dists_made)
                     dists_missed.extend(current_dists_missed)
 
-        if option == "dists":
-            hist_made = np.histogram(
-                dists_made,
-                bins=[i for i in range(min(dists_made), max(dists_made))]
-            )
-            hist_missed = np.histogram(
-                dists_missed,
-                bins=[i for i in range(min(dists_missed), max(dists_missed))]
-            )
+    if option == "dists" and dists_made:
+        hist_made = np.histogram(
+            dists_made,
+            bins=[i for i in range(min(dists_made), max(dists_made))]
+        )
+        hist_missed = np.histogram(
+            dists_missed,
+            bins=[i for i in range(min(dists_missed), max(dists_missed))]
+        )
 
-            np.savez(f"data/{team}/dists", hist_made[0], hist_made[1])
-            np.savez(f"data/{team}/dists_missed", hist_missed[0], hist_missed[1])
+        np.savez(f"data/{team}/dists", hist_made[0], hist_made[1])
+        np.savez(f"data/{team}/dists_missed", hist_missed[0], hist_missed[1])
 
 
 def parse_team_shot_points(season):
