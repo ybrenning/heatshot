@@ -486,7 +486,7 @@ def plot_heatmap(team, shot_type, chart_type="density"):
     )
 
 
-def plot_dists(dropdown, stat="made"):
+def plot_dists(dropdown, category, stat="made"):
 
     data_made = np.load(f"data/{dropdown}/dists.npz")
     data_missed = np.load(f"data/{dropdown}/dists_missed.npz")
@@ -524,7 +524,6 @@ def plot_dists(dropdown, stat="made"):
     elif stat == "all":
         ys = np.append(ys_made, ys_missed)
 
-    print(ys)
     layout = go.Layout(
         margin=dict(t=20),
         autosize=True
@@ -550,17 +549,18 @@ def plot_dists(dropdown, stat="made"):
         yaxis_title="No. of made shots"
     )
 
+    annotation_y = 0.5 if category == "Player" else 300
     fig.add_vline(x=22, line_width=3, line_dash="dash", line_color="green")
     fig.add_annotation(
         x=22,
-        y=0.5,
+        y=annotation_y,
         text="3PT Line",
         showarrow=False,
         yshift=10,
     )
 
     fig.update_layout(hovermode="x")
-    fig.update_layout(xaxis_range=[0, HALFCOURT_LEN])
+    fig.update_layout(xaxis_range=[0, 40])
 
     return fig
 
@@ -573,7 +573,7 @@ def plot_dists(dropdown, stat="made"):
 )
 def create_dist_graph(category, dropdown):
     # if category == "Player":
-    return plot_dists(dropdown), {"display": "block"}
+    return plot_dists(dropdown, category), {"display": "block"}
     # return go.Figure(), {"display": "none"}
 
 
