@@ -613,7 +613,7 @@ def plot_dists(dropdown, category, stat="made"):
     )
 
     fig.update_layout(hovermode="x")
-    fig.update_layout(xaxis_range=[0, 40])
+    fig.update_layout(xaxis_range=[0, 40], height=250)
 
     return fig
 
