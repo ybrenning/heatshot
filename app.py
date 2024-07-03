@@ -203,7 +203,19 @@ def create_heatmap(team, shot_type):
 
     fig = go.Figure()
     fig.add_trace(
-        go.Heatmap(z=np.sqrt(Z), opacity=0.9)
+        go.Heatmap(
+            z=np.sqrt(Z),
+            opacity=0.9,
+            colorbar=dict(
+                title="Square Root of Kernel Density Estimate",
+                x=1,
+                xanchor="left")
+        )
+    )
+
+    fig.update_traces(
+        colorbar_title_side="right",
+        colorscale="Viridis"
     )
 
     fig.update_layout(xaxis_range=[0, 200])
@@ -211,7 +223,6 @@ def create_heatmap(team, shot_type):
 
     fig.update_layout(
         width=W,
-        # For some reason it gets cut off
         height=H+10,
         images=[
             dict(
@@ -222,7 +233,7 @@ def create_heatmap(team, shot_type):
                 x=0, y=1,
                 sizex=1, sizey=1,
                 xanchor="left", yanchor="top",
-                sizing="fill",
+                sizing="stretch",
                 layer="below"
             )
         ]
@@ -544,7 +555,6 @@ def plot_dists(dropdown, category, stat="made"):
     )
 
     fig.update_layout(
-        # title='Line Chart Example',
         xaxis_title="Shot distance (ft)",
         yaxis_title="No. of made shots"
     )
@@ -572,9 +582,7 @@ def plot_dists(dropdown, category, stat="made"):
     Input("dropdown", "value"),
 )
 def create_dist_graph(category, dropdown):
-    # if category == "Player":
     return plot_dists(dropdown, category), {"display": "block"}
-    # return go.Figure(), {"display": "none"}
 
 
 if __name__ == '__main__':
