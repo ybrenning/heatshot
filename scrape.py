@@ -1,15 +1,13 @@
 import os
 import re
-import requests
 import time
 
 import numpy as np
+import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-
 base_url = "https://www.basketball-reference.com/"
-img_path = "nbahalfcourt.png"
 
 teams_east = [
     "BOS",
