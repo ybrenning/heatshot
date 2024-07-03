@@ -12,6 +12,7 @@ from sklearn.neighbors import KernelDensity
 from player_data import player_data
 
 app = Dash(__name__)
+app.title = "Visualizing NBA Shooting"
 
 W = 500*1.2
 H = 472*1.2
