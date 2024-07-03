@@ -459,9 +459,7 @@ app.layout = html.Div([
              "height": "600px",
              },
     ),
-
-
-], style={"font-family": "Verdana"})
+], style={"font-family": "Verdana", "backgroundColor": "white"})
 
 
 @app.callback(
