@@ -14,7 +14,7 @@ W = 500*1.2
 H = 472*1.2
 HALFCOURT_LEN = 47
 
-halfcourt = 'nbahalfcourt.png'
+halfcourt = 'nbahalfcourt(2).png'
 import plotly.io as pio
 from PIL import Image
 import base64
@@ -152,14 +152,14 @@ teams_dict = {
 chart_types = ["points", "density"]
 
 
-def plot_team_shot_chart(team, chart_type, shot_type):
+def plot_team_shot_chart(team, chart_type, shot_type, colorscale):
     if shot_type not in types:
         raise ValueError(
             f"{shot_type} is not a valid input. Possible choices: {types}"
         )
 
     if chart_type.lower() == "density":
-        return create_heatmap(team, shot_type)
+        return create_heatmap(team, shot_type, colorscale=colorscale)
     elif chart_type.lower() == "points":
         return create_scatter(team, shot_type)
     else:
@@ -169,7 +169,7 @@ def plot_team_shot_chart(team, chart_type, shot_type):
         )
 
 
-def create_heatmap(team, shot_type):
+def create_heatmap(team, shot_type, colorscale):
     path = f"data/{team}"
 
     x = np.array([])
@@ -205,7 +205,7 @@ def create_heatmap(team, shot_type):
     fig.add_trace(
         go.Heatmap(
             z=np.sqrt(Z),
-            opacity=0.9,
+            opacity=1,
             colorbar=dict(
                 title="Square Root of Kernel Density Estimate",
                 x=1,
@@ -215,7 +215,7 @@ def create_heatmap(team, shot_type):
 
     fig.update_traces(
         colorbar_title_side="right",
-        colorscale="Viridis"
+        colorscale=colorscale
     )
 
     fig.update_layout(xaxis_range=[0, 200])
@@ -234,7 +234,7 @@ def create_heatmap(team, shot_type):
                 sizex=1, sizey=1,
                 xanchor="left", yanchor="top",
                 sizing="stretch",
-                layer="below"
+                layer="above",
             )
         ]
     )
@@ -292,7 +292,7 @@ def create_scatter(team, shot_type):
                 sizex=1, sizey=1,
                 xanchor="left", yanchor="top",
                 sizing="fill",
-                layer="below"
+                layer="above"
             )
         ]
     )
@@ -306,7 +306,7 @@ def create_scatter(team, shot_type):
 
 
 app.layout = html.Div([
-    html.H1(
+    html.H2(
         children="Visualizing NBA shooting tendencies",
         style={
             "margin-bottom": "0px",
@@ -319,11 +319,14 @@ app.layout = html.Div([
         html.Div(
             [
                 html.Div(
-                    dcc.RadioItems(
-                        ["Team", "Player"],
-                        "Team",
-                        id="category",
-                    ),
+                    [
+                        html.B("Category", style={"vertical-align": "top"}),
+                        dcc.RadioItems(
+                            ["Team", "Player"],
+                            "Team",
+                            id="category",
+                        ),
+                    ],
                     style={"margin-top": "75px", 'padding': '20px'}
                 ),
 
@@ -348,11 +351,40 @@ app.layout = html.Div([
         html.Div(
             [
                 html.Div(
-                    dcc.RadioItems(
-                        ["Made", "Missed", "Attempted"],
-                        "Attempted",
-                        id="shot-type",
-                    ),
+                    [
+                        html.Div(
+                            [
+                                html.B("Shot Type", style={"vertical-align": "top"}),
+                                dcc.RadioItems(
+                                    ["Made", "Missed", "Attempted"],
+                                    "Attempted",
+                                    id="shot-type",
+                                ),
+                            ],
+                            style={
+                                "display": "inline-block",
+                                "vertical-align": "top"
+                            }
+                        ),
+
+                        html.Div(
+                            [
+                                html.B(
+                                    "Color Scale",
+                                    style={"vertical-align": "top"}
+                                ),
+                                dcc.RadioItems(
+                                    ["Portland", "Jet", "Hot"],
+                                    "Portland",
+                                    id="colorscale",
+                                ),
+                            ],
+                            style={
+                                "display": "inline-block",
+                                "margin-left": "100px",
+                            }
+                        ),
+                    ],
                     style={
                         "margin-top": "75px",
                         "margin-left": "40px",
@@ -439,7 +471,9 @@ def update_player_desc(category, dropdown):
         description = []
 
         for attribute in attributes:
-            description.append(attribute + ": " + player_data[dropdown][attribute])
+            description.append(
+                attribute + ": " + player_data[dropdown][attribute]
+            )
             description.append(html.Br())
 
         return description
@@ -485,15 +519,17 @@ def update_dropdown(category):
     Output("shot-chart", "figure"),
     Input("dropdown", "value"),
     Input("shot-type", "value"),
+    Input("colorscale", "value"),
     # Input("shot-chart-type", "value")
 )
-def plot_heatmap(team, shot_type, chart_type="density"):
+def plot_heatmap(team, shot_type, colorscale, chart_type="density"):
 
     shot_type = shot_type_dict[shot_type]
     return plot_team_shot_chart(
         team,
         chart_type=chart_type,
-        shot_type=shot_type
+        shot_type=shot_type,
+        colorscale=colorscale
     )
 
 
@@ -542,15 +578,17 @@ def plot_dists(dropdown, category, stat="made"):
 
     fig = go.Figure(layout=layout)
 
-    # hover_text_made = [f"{y} shots made from {x} ft" for (x, y) in zip(xs, ys)]
+    hover_text = [
+        f"{y} shots made from {x} ft" for (x, y) in zip(xs_made, ys_made)
+    ]
     fig.add_trace(
         go.Scatter(
             x=xs_made,
             y=ys,
             mode='lines',
             name='Line Chart',
-            # text=hover_text,
-            # hovertemplate="%{text}<extra></extra>"
+            text=hover_text,
+            hovertemplate="%{text}<extra></extra>"
         )
     )
 
@@ -559,7 +597,7 @@ def plot_dists(dropdown, category, stat="made"):
         yaxis_title="No. of made shots"
     )
 
-    annotation_y = 0.5 if category == "Player" else 300
+    annotation_y = max(ys) // 2
     fig.add_vline(x=22, line_width=3, line_dash="dash", line_color="green")
     fig.add_annotation(
         x=22,
