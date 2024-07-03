@@ -1,9 +1,12 @@
+import base64
 import os
+from io import BytesIO
+
 import numpy as np
 import plotly.graph_objects as go
-import plotly.express as px
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
+from PIL import Image
 from sklearn.neighbors import KernelDensity
 
 from player_data import player_data
@@ -15,12 +18,8 @@ H = 472*1.2
 HALFCOURT_LEN = 47
 
 halfcourt = 'nbahalfcourt(2).png'
-import plotly.io as pio
-from PIL import Image
-import base64
-from io import BytesIO
 
-# Load the image
+
 image = Image.open(halfcourt)
 buffered = BytesIO()
 image.save(buffered, format="PNG")
@@ -227,7 +226,6 @@ def create_heatmap(team, shot_type, colorscale):
         images=[
             dict(
                 source='data:image/png;base64,{}'.format(img_str),
-                # source=halfcourt,
                 xref="paper",
                 yref="paper",
                 x=0, y=1,
@@ -284,7 +282,6 @@ def create_scatter(team, shot_type):
         height=H+20,
         images=[
             dict(
-                # source=halfcourt,
                 source='data:image/png;base64,{}'.format(img_str),
                 xref="paper",
                 yref="paper",
@@ -300,7 +297,12 @@ def create_scatter(team, shot_type):
     fig['layout']['yaxis']['autorange'] = "reversed"
 
     fig.update_xaxes(showgrid=False, zeroline=False, showticklabels=False)
-    fig.update_yaxes(range=[0, H+100], showgrid=False, zeroline=False, showticklabels=False)
+    fig.update_yaxes(
+        range=[0, H+100],
+        showgrid=False,
+        zeroline=False,
+        showticklabels=False
+    )
 
     return fig
 
@@ -354,7 +356,10 @@ app.layout = html.Div([
                     [
                         html.Div(
                             [
-                                html.B("Shot Type", style={"vertical-align": "top"}),
+                                html.B(
+                                    "Shot Type",
+                                    style={"vertical-align": "top"}
+                                ),
                                 dcc.RadioItems(
                                     ["Made", "Missed", "Attempted"],
                                     "Attempted",
