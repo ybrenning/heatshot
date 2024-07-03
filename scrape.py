@@ -283,14 +283,12 @@ def parse_player_shot_distances(season):
 
 def parse_team_shot_distances(season):
 
-    for team in teams_east + teams_west:
+    # TODO: This is only temporary bcs the scraping is bugging
+    for team in ["MEM"]:
         url = f"{base_url}/teams/{team}/{season}_games.html"
         response = requests.get(url)
-        print(response)
         if response.status_code == 200:
-            print("Success")
             parse_matches(response, team, option="dists")
-        assert False
 
         for _ in tqdm(range(0, 60), desc="Request cooldown (60s)"):
             time.sleep(1)
