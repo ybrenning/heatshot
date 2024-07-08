@@ -7,68 +7,9 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+from utils import teams_east, teams_west, players
+
 base_url = "https://www.basketball-reference.com/"
-
-teams_east = [
-    "BOS",
-    "NYK",
-    "MIL",
-    "CLE",
-    "ORL",
-    "IND",
-    "PHI",
-    "MIA",
-    "CHI",
-    "ATL",
-    "BRK",
-    "TOR",
-    "CHO",
-    "WAS",
-    "DET"
-]
-
-teams_west = [
-    "OKC",
-    "DEN",
-    "MIN",
-    "LAC",
-    "DAL",
-    "PHO",
-    "NOP",
-    "LAL",
-    "SAC",
-    "GSW",
-    "HOU",
-    "UTA",
-    "MEM",
-    "SAS",
-    "POR"
-]
-
-players = [
-    "curryst01",
-    "antetgi01",
-    "jamesle01",
-    "doncilu01",
-    "jokicni01",
-    "gilgesh01",
-    "embiijo01",
-    "duranke01",
-    "irvinky01",
-    "edwaran01",
-    "georgpa01",
-    "bookede01",
-    "willizi01",
-    "tatumja01",
-    "brunsja01",
-    "butleji01",
-    "goberru01",
-    "wembavi01",
-    "derozde01",
-    "youngtr01",
-    "hardeja01",
-    "thompkl01"
-]
 
 
 def process_response(response, category):
@@ -247,8 +188,14 @@ def process_response_dists(response, category):
     if category == "team":
         return dists_made, dists_missed
     else:
-        hist_made = np.histogram(dists_made, bins=[i for i in range(min(dists_made), max(dists_made))])
-        hist_missed = np.histogram(dists_missed, bins=[i for i in range(min(dists_missed), max(dists_missed))])
+        hist_made = np.histogram(
+            dists_made,
+            bins=[i for i in range(min(dists_made), max(dists_made))]
+        )
+        hist_missed = np.histogram(
+            dists_missed,
+            bins=[i for i in range(min(dists_missed), max(dists_missed))]
+        )
 
         return hist_made, hist_missed
 
@@ -294,5 +241,4 @@ def parse_team_shot_distances(season):
 
 
 if __name__ == "__main__":
-    # parse_player_shot_distances("2024")
     parse_team_shot_distances("2024")

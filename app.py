@@ -10,6 +10,7 @@ from PIL import Image
 from sklearn.neighbors import KernelDensity
 
 from player_data import player_data
+from utils import teams_east, teams_west, players_dict
 
 app = Dash(__name__)
 app.title = "Visualizing NBA Shooting"
@@ -18,7 +19,7 @@ W = 500*1.2
 H = 472*1.2
 HALFCOURT_LEN = 47
 
-halfcourt = 'nbahalfcourt(2).png'
+halfcourt = "nbahalfcourt.png"
 
 
 image = Image.open(halfcourt)
@@ -29,125 +30,6 @@ img_str = base64.b64encode(buffered.getvalue()).decode()
 types = ["made", "missed", "all"]
 shot_type_dict = {"Made": "made", "Missed": "missed", "Attempted": "all"}
 
-teams_east = [
-    "BOS",
-    "NYK",
-    "MIL",
-    "CLE",
-    "ORL",
-    "IND",
-    "PHI",
-    "MIA",
-    "CHI",
-    "ATL",
-    "BRK",
-    "TOR",
-    "CHO",
-    "WAS",
-    "DET"
-]
-
-teams_west = [
-    "OKC",
-    "DEN",
-    "MIN",
-    "LAC",
-    "DAL",
-    "PHO",
-    "NOP",
-    "LAL",
-    "SAC",
-    "GSW",
-    "HOU",
-    "UTA",
-    "MEM",
-    "SAS",
-    "POR"
-]
-
-players = [
-    "curryst01",
-    "antetgi01",
-    "jamesle01",
-    "doncilu01",
-    "jokicni01",
-    "gilgesh01",
-    "embiijo01",
-    "duranke01",
-    "irvinky01",
-    "edwaran01",
-    "georgpa01",
-    "bookede01",
-    "willizi01",
-    "tatumja01",
-    "brunsja01",
-    "butleji01",
-    "goberru01",
-    "wembavi01",
-    "derozde01",
-    "youngtr01",
-    "hardeja01",
-    "thompkl01"
-]
-
-
-players_dict = {
-    "curryst01": "Stephen Curry",
-    "antetgi01": "Giannis Antetokounmpo",
-    "jamesle01": "LeBron James",
-    "doncilu01": "Luka Doncic",
-    "jokicni01": "Nikola Jokic",
-    "gilgesh01": "Shai Gilgeous-Alexander",
-    "embiijo01": "Joel Embiid",
-    "duranke01": "Kevin Durant",
-    "irvinky01": "Kyrie Irving",
-    "edwaran01": "Anthony Edwards",
-    "georgpa01": "Paul George",
-    "bookede01": "Devin Booker",
-    "willizi01": "Zion Williamson",
-    "tatumja01": "Jayson Tatum",
-    "brunsja01": "Jalen Brunson",
-    "butleji01": "Jimmy Butler",
-    "goberru01": "Rudy Gobert",
-    "wembavi01": "Victor Wembanyama",
-    "derozde01": "DeMar DeRozan",
-    "youngtr01": "Trae Young",
-    "hardeja01": "James Harden",
-    "thompkl01": "Klay Thompson"
-}
-
-teams_dict = {
-    "BOS": "Boston Celtics",
-    "NYK": "New York Knicks",
-    "MIL": "Milwaukee Bucks",
-    "CLE": "Cleveland Cavaliers",
-    "ORL": "Orlando Magic",
-    "IND": "Indiana Pacers",
-    "PHI": "Philadelphia 76ers",
-    "MIA": "Miami Heat",
-    "CHI": "Chicago Bulls",
-    "ATL": "Atlanta Hawks",
-    "BRK": "Brooklyn Nets",
-    "TOR": "Toronto Raptors",
-    "CHO": "Charlotte Hornets",
-    "WAS": "Washington Wizards",
-    "DET": "Detroit Pistons",
-    "OKC": "Oklahoma City Thunder",
-    "DEN": "Denver Nuggets",
-    "MIN": "Minnesota Timberwolves",
-    "LAC": "Los Angeles Clippers",
-    "DAL": "Dallas Mavericks",
-    "PHO": "Phoenix Suns",
-    "NOP": "New Orleans Pelicans",
-    "LAL": "Los Angeles Lakers",
-    "SAC": "Sacremento Kings",
-    "GSW": "Golden State Warriors",
-    "HOU": "Houston Rockets",
-    "UTA": "Utah Jazz",
-    "MEM": "Memphis Grizzlies",
-    "SAS": "San Antonio Spurs",
-    "POR": "Portland Trailblazers"
-}
 
 chart_types = ["points", "density"]
 
