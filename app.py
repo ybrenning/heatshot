@@ -10,7 +10,7 @@ from PIL import Image
 from sklearn.neighbors import KernelDensity
 
 from player_data import player_data
-from utils import teams_east, teams_west, players_dict
+from utils import teams_east, teams_west, players_dict, teams_dict
 
 app = Dash(__name__)
 app.title = "Visualizing NBA Shooting"
